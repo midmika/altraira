@@ -1,0 +1,19 @@
+announce = false
+description = 'Awesome server... I guess'
+website = 'test.com'
+gamemode = 'Death Match'
+language = 'ru'
+modules = ['js-module']
+name = 'Altaira Death Match  | Test Server'
+players = 1048
+tags = []
+resources = ['core']
+debug = true
+host = '0.0.0.0'
+port = 7788
+[js-module]
+global-webcrypto = true
+global-fetch = true
+source-maps = true
+network-imports = true
+extra-cli-args = ['--max-old-space-size=8192']

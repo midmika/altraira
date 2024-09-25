@@ -1,0 +1,8 @@
+[dev]
+#use_overwrite_spawn='0 0 71'
+gs_server_port = 6686
+gs_daemon_port = 6687
+gs_player_reconnect_ip_list = []
+
+[client]
+skip_auth=true

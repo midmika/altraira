@@ -1,0 +1,31 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "esModuleInterop": true,
+    "typeRoots": [
+
+    ],
+    "types": [
+      "../../node_modules/@altv/types-shared",
+      "../../node_modules/@altv/types-server",
+      "../../node_modules/@altv/types-client",
+      "../../node_modules/@altv/types-webview",
+      "../../node_modules/@altv/types-natives",
+      "../../node_modules/@types/**/*",
+      "./*/**",
+      "node"
+    ],
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["./*"],
+    }
+  },
+  "types": [
+    "../../node_modules/@types/**/*",
+    "./**/**",
+    "node"
+  ],
+  "include": ["../../node_modules/**/*"],
+}

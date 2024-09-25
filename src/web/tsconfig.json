@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "preserve",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "typeRoots": [
+      "../../node_modules/@altv/types-webview",
+      "../../node_modules/@altv/types-shared"
+    ],
+    "types": [
+      "../shared/types/**/*",
+      "../../node_modules"
+    ],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/shared/*": ["../shared/*"]
+    }
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "../../node_modules/@altv/types-webview/index.d.ts",
+    "../../node_modules/.pnpm/@altv+types-webview@16.2.1/node_modules/@altv/types-webview/index.d.ts"
+  ],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}

@@ -1,0 +1,8 @@
+node_modules
+bin
+dev
+dist
+docker-data/*
+!docker-data/.gitkeep
+.idea
+.env

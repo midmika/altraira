@@ -1,0 +1,45 @@
+version: '3.9'
+name: 'altaira'
+
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASS}
+      POSTGRES_DB: postgres
+      POSTGRES_HOST_AUTH_METHOD: md5
+    volumes:
+      - ./docker-data/pg_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT}:5432"
+
+  altaira:
+    container_name: altaira-dev
+    build:
+      context: .
+      dockerfile: ./dev.Dockerfile
+      args:
+        BUILD_MODE: production
+    environment:
+      NODE_ENV: production
+    ports:
+      - '7788:7788'
+      - '7788:7788/udp'
+    env_file:
+      - .env
+    restart: unless-stopped
+    volumes:
+      - ./docker-data/app:/app:cached
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  shared_network:
+    external: true
