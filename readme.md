@@ -9,6 +9,9 @@ npm i -g pnpm
 ```bash
 pnpm i
 ```
+```bash
+copy .env.example .env
+```
 
 ### Dev 
 Сломан, в процессе миграции в докер
