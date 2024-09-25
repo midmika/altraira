@@ -3,8 +3,8 @@ import {getClientConfig, getServerConfig} from "../build.config.js";
 import ESBuild from "esbuild";
 import { build as ViteBuild } from 'vite';
 
-const buildServer = async (rootDir, srcDir, outDir) => {
-    const config = getServerConfig(rootDir, srcDir, outDir, 'prod');
+const buildServer = async (ROOT_DIR, srcDir, outDir) => {
+    const config = getServerConfig(ROOT_DIR, srcDir, outDir, 'prod');
     const res = await ESBuild.build(config)
     const firstError = res.errors[0]
     if(firstError) {
@@ -13,8 +13,8 @@ const buildServer = async (rootDir, srcDir, outDir) => {
     }
 }
 
-const buildClient = async (rootDir, srcDir, outDir) => {
-    const config = getClientConfig(rootDir, srcDir, outDir, 'prod');
+const buildClient = async (ROOT_DIR, srcDir, outDir) => {
+    const config = getClientConfig(ROOT_DIR, srcDir, outDir, 'prod');
     const res = await ESBuild.build(config)
     const firstError = res.errors[0]
     if(firstError) {
@@ -23,7 +23,7 @@ const buildClient = async (rootDir, srcDir, outDir) => {
     }
 }
 
-const buildWeb = async (rootDir, srcDir, outDir) => {
+const buildWeb = async (ROOT_DIR, srcDir, outDir) => {
     const config = {
         root: srcDir,
         base: '/client/web/',
@@ -42,12 +42,12 @@ const buildWeb = async (rootDir, srcDir, outDir) => {
     await ViteBuild(config)
 }
 
-export const buildProduction = async (rootDir, srcDir, coreResourceDir) => {
+export const buildProduction = async (ROOT_DIR, srcDir, coreResourceDir) => {
     try {
         await Promise.all([
-            buildServer(rootDir, path.join(srcDir, 'server'), path.join(coreResourceDir, 'server')),
-            buildClient(rootDir, path.join(srcDir, 'client'), path.join(coreResourceDir, 'client')),
-            buildWeb(rootDir, path.join(srcDir, 'web'), path.join(coreResourceDir, 'client', 'web')),
+            buildServer(ROOT_DIR, path.join(srcDir, 'server'), path.join(coreResourceDir, 'server')),
+            buildClient(ROOT_DIR, path.join(srcDir, 'client'), path.join(coreResourceDir, 'client')),
+            buildWeb(ROOT_DIR, path.join(srcDir, 'web'), path.join(coreResourceDir, 'client', 'web')),
         ])
     } catch (error) {
         console.log('Fatal error')

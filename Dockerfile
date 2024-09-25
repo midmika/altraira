@@ -10,7 +10,7 @@ RUN pnpm build production
 FROM altmp/altv-server:release
 RUN npm install -g pnpm tsx
 
-ENV NODE_ENV=true
+ENV NODE_ENV='production'
 ENV ALTV_USE_ENV_CONFIG=false
 
 COPY --from=build /app/dist /altv

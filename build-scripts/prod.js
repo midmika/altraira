@@ -20,9 +20,9 @@ const RESOURCES_DIR = path.join(OUT_DIR, 'resources');
 const CORE_RESOURCE_DIR = path.join(RESOURCES_DIR, 'core');
 const SERVER_CORE_RESOURCE_DIR = path.join(CORE_RESOURCE_DIR, 'server');
 
-const writeOptimizedServerPackageJson = (rootDir, externalDeps) => {
+const writeOptimizedServerPackageJson = (ROOT_DIR, externalDeps) => {
     const currentPackageJson = JSON.parse(fse.readFileSync(
-        path.join(rootDir, 'package.json'),
+        path.join(ROOT_DIR, 'package.json'),
         'utf8'
     ))
 
@@ -48,8 +48,8 @@ const writeOptimizedServerPackageJson = (rootDir, externalDeps) => {
     )
 }
 
-const buildServer = async (rootDir, srcDir, outDir) => {
-    const config = getServerConfig(rootDir, srcDir, outDir, 'production');
+const buildServer = async (ROOT_DIR, srcDir, outDir) => {
+    const config = getServerConfig(ROOT_DIR, srcDir, outDir, 'production');
     const res = await ESBuild.build(config)
     const firstError = res.errors[0]
     if(firstError) {
@@ -61,11 +61,11 @@ const buildServer = async (rootDir, srcDir, outDir) => {
     Object
         .entries(res?.metafile?.inputs)
         .forEach(i => i[1]?.imports?.forEach(i => {if (i?.external) externalDeps.add(i.path)}))
-    writeOptimizedServerPackageJson(rootDir, externalDeps)
+    writeOptimizedServerPackageJson(ROOT_DIR, externalDeps)
 }
 
-const buildClient = async (rootDir, srcDir, outDir) => {
-    const config = getClientConfig(rootDir, srcDir, outDir, 'production');
+const buildClient = async (ROOT_DIR, srcDir, outDir) => {
+    const config = getClientConfig(ROOT_DIR, srcDir, outDir, 'production');
     const res = await ESBuild.build(config)
     const firstError = res.errors[0]
     if(firstError) {
@@ -74,7 +74,7 @@ const buildClient = async (rootDir, srcDir, outDir) => {
     }
 }
 
-const buildWeb = async (rootDir, srcDir, outDir) => {
+const buildWeb = async (ROOT_DIR, srcDir, outDir) => {
     const config = {
         root: srcDir,
         base: '/client/web/',
@@ -93,12 +93,12 @@ const buildWeb = async (rootDir, srcDir, outDir) => {
     await ViteBuild(config)
 }
 
-const buildProduction = async (rootDir, srcDir, coreResourceDir) => {
+const buildProduction = async (ROOT_DIR, srcDir, coreResourceDir) => {
     try {
         await Promise.all([
-            buildServer(rootDir, path.join(srcDir, 'server'), path.join(coreResourceDir, 'server')),
-            buildClient(rootDir, path.join(srcDir, 'client'), path.join(coreResourceDir, 'client')),
-            buildWeb(rootDir, path.join(srcDir, 'web'), path.join(coreResourceDir, 'client', 'web')),
+            buildServer(ROOT_DIR, path.join(srcDir, 'server'), path.join(coreResourceDir, 'server')),
+            buildClient(ROOT_DIR, path.join(srcDir, 'client'), path.join(coreResourceDir, 'client')),
+            buildWeb(ROOT_DIR, path.join(srcDir, 'web'), path.join(coreResourceDir, 'client', 'web')),
         ])
     } catch (error) {
         console.log('Fatal error')
@@ -113,7 +113,7 @@ const index = async () => {
     fse.mkdirSync(CORE_RESOURCE_DIR)
     fse.mkdirSync(SERVER_CORE_RESOURCE_DIR)
 
-    let serverToml = path.join(ROOT_DIR, 'altv', MODE === 'production' ? 'server.toml': 'server.dev.toml')
+    let serverToml = path.join(ROOT_DIR, 'altv', 'server.toml')
 
     fse.copySync(
         path.join(serverToml),

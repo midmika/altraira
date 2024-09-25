@@ -3,5 +3,6 @@ bin
 docs
 dev
 dist
+docker-data
 .idea
 .env

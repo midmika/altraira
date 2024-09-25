@@ -30,7 +30,7 @@ export class DevServerDaemon {
         this.is_in_action = false
     }
 
-    #restartRequest() {
+    restartRequest() {
         if(!this.is_up && this.is_in_action) {
             this.is_wanna = true
             return;

@@ -1,100 +1,111 @@
 import path from "node:path";
-import ESBuild from "esbuild";
-import {build as ViteBuild} from 'vite';
-import {getClientConfig, getServerConfig} from "./build.config.js";
 import fse from "fs-extra";
+import {DevServerDaemon} from "./serve.js";
+import {downloadAltVPackages, watchClient, watchServer} from "./tools.dev.js";
 
 const ROOT_DIR = path.join(import.meta.dirname, '..')
 const SRC_DIR = path.join(ROOT_DIR, 'src')
 const BIN_DIR = path.join(import.meta.dirname, '..', 'bin')
-const RESOURCE_DIR = path.join(BIN_DIR, 'resources');
-const CORE_RESOURCE_DIR = path.join(RESOURCE_DIR, 'core');
+const RESOURCES_DIR = path.join(BIN_DIR, 'resources');
+const SERVER_CORE_RESOURCE_DIR = path.join(RESOURCES_DIR, 'core');
 
-const writeOptimizedServerPackageJson = (rootDir, externalDeps) => {
-    const currentPackageJson = JSON.parse(fse.readFileSync(
-        path.join(ROOT_DIR, 'package.json'),
-        'utf8'
-    ))
 
-    const currentDeps = currentPackageJson.dependencies
+fse.copyFileSync(
+    path.join(ROOT_DIR, '.altvpkgrc.json'),
+    path.join(ROOT_DIR, '.altvpkgrc.json'),
+)
 
-    const newDeps = {}
-    Object.entries(currentDeps).forEach(_ => {
-        if (externalDeps.has(_[0])) {
-            newDeps[_[0]] = _[1]
+const spawnServer = async () => {
+
+}
+
+const serve = async () => {
+    
+    await downloadAltVPackages(BIN_DIR)
+
+    const serverEE = await watchServer(ROOT_DIR, path.join(SRC_DIR, 'server'), path.join(SERVER_CORE_RESOURCE_DIR, 'server'))
+    const clientEE = await watchClient(ROOT_DIR, path.join(SRC_DIR, 'client'), path.join(SERVER_CORE_RESOURCE_DIR, 'client'))
+
+    let isServerInitialReady = false
+    let isClientInitialReady = false
+
+    serverEE.once('ok', () => onFirstOk('server'))
+    clientEE.once('ok', () => onFirstOk('client'))
+
+    const onFirstOk = (type) => {
+        if(type === 'server') {
+            isServerInitialReady = true
+        } else {
+            isClientInitialReady = true
         }
+
+        if(isServerInitialReady && isClientInitialReady) onInitialReady()
+    }
+
+    const onInitialReady = () => {
+        console.clear()
+        console.log('✅  Watch ready')
+
+        const daemon = new DevServerDaemon()
+
+        serverEE.on('ok', () => {
+            daemon.restartRequest()
+            console.log('Server successful built')
+        })
+
+        clientEE.on('ok', () => {
+            daemon.restartRequest()
+            console.log('Client successful built')
+        })
+    }
+
+    serverEE.on('error', (err) => {
+        console.clear()
+        console.log('❌  Server build error\n')
+        process.stderr.write(err)
     })
 
-    const optimizedPackageJson = {
-        ...currentPackageJson,
-        dependencies: newDeps,
-        devDependencies: {}
-    }
+    serverEE.on('warning', (warning) => {
+        console.clear()
+        console.log('⚠️  Server warning\n')
+        process.stdout.write(warning)
+    })
 
-    // fse.writeFileSync(path.join(ROOT_DIR, 'server.package.json'), JSON.stringify(optimizedPackageJson, null, 2))
+
+    clientEE.on('error', (err) => {
+        console.clear()
+        console.log('❌  Client build error\n')
+        process.stderr.write(err)
+    })
+
+    clientEE.on('warning', (warning) => {
+        console.clear()
+        console.log('⚠️  Client warning\n')
+        process.stdout.write(warning)
+    })
 }
 
-const buildServer = async (rootDir, srcDir, outDir) => {
-    const config = getServerConfig(rootDir, srcDir, outDir, 'dev');
-    const res = await ESBuild.build(config)
+const index = async () => {
+    fse.mkdirSync(RESOURCES_DIR)
+    fse.mkdirSync(SERVER_CORE_RESOURCE_DIR)
+    fse.mkdirSync(SERVER_CORE_RESOURCE_DIR)
 
-    const externalDeps = new Set()
-    Object
-        .entries(res.metafile.inputs)
-        .forEach(i => i[1]?.imports.forEach(i => {if (i?.external) {
-            externalDeps.add(i.path)
-            console.log(i)
-        }}))
-    writeOptimizedServerPackageJson(rootDir, externalDeps)
+    let serverToml = path.join(ROOT_DIR, 'altv', 'server.dev.toml')
 
-    const firstError = res.errors[0]
-    if (firstError) {
-        console.log('Fatal client build')
-        throw firstError
-    }
+    fse.copySync(
+        path.join(serverToml),
+        path.join(BIN_DIR, 'server.toml'),
+    )
+
+    fse.copySync(
+        path.join(ROOT_DIR, 'altv', 'resource.toml'),
+        path.join(SERVER_CORE_RESOURCE_DIR, 'resource.toml'),
+    )
+    
+    fse.copySync(
+        path.join(ROOT_DIR, 'kysely'),
+        path.join(SERVER_CORE_RESOURCE_DIR, 'kysely'),
+    )
 }
 
-const buildClient = async (rootDir, srcDir, outDir) => {
-    const config = getClientConfig(rootDir, srcDir, outDir, 'dev');
-    const res = await ESBuild.build(config)
-    const firstError = res.errors[0]
-    if (firstError) {
-        console.log('Fatal client build')
-        throw firstError
-    }
-}
-
-const buildWeb = async (rootDir, srcDir, outDir) => {
-    const config = {
-        root: srcDir,
-        base: '/client/web/',
-        build: {
-            outDir: outDir,
-            minify: 'terser'
-        },
-        resolve: {
-            alias: {
-                '@/shared': path.join(srcDir, '..', 'shared'),
-                '@': path.join(srcDir, './src'),
-            },
-        },
-    };
-
-    await ViteBuild(config)
-}
-
-const buildProduction = async (rootDir, srcDir, coreResourceDir) => {
-    try {
-        await Promise.all([
-            buildServer(rootDir, path.join(srcDir, 'server'), path.join(coreResourceDir, 'server')),
-            // buildClient(rootDir, path.join(srcDir, 'client'), path.join(coreResourceDir, 'client')),
-            // buildWeb(rootDir, path.join(srcDir, 'web'), path.join(coreResourceDir, 'client', 'web')),
-        ])
-    } catch (error) {
-        console.log('Fatal error')
-        console.log(error)
-        process.exit(1)
-    }
-}
-
-void buildProduction(ROOT_DIR, SRC_DIR, CORE_RESOURCE_DIR)
+void index()

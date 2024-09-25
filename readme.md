@@ -14,8 +14,12 @@ copy .env.example .env
 ```
 
 ### Dev 
-Сломан, в процессе миграции в докер
-
+```bash
+pnpm web:serve
+```
+```bash
+pnpm dev:docker
+```
 ### Production 
 Мониторинг опционален
 ```bash

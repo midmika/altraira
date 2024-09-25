@@ -2,7 +2,7 @@ import path from "node:path";
 import child_process from "node:child_process";
 import fse from "fs-extra";
 import {buildProduction} from "./strategy/prod.js";
-import {serveStrategy} from "./strategy/dev.js";
+import {serveStrategy} from "./dev.js";
 import {configureAltVConfig} from "./altv-config.js";
 
 let MODE = process.argv[2]
@@ -46,7 +46,7 @@ export const index = async () => {
     // )
     //
 
-    configureAltVConfig(BIN_DIR, CORE_RESOURCE_DIR)
+    // configureAltVConfig(BIN_DIR, CORE_RESOURCE_DIR)
     // await downloadAltVPackages()
 
     if(MODE === 'prod') {
