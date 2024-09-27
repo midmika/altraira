@@ -4,14 +4,6 @@ import { build as ViteBuild } from 'vite';
 import {getClientConfig, getServerConfig} from "./build.config.js";
 import fse from "fs-extra";
 
-let MODE = process.argv[2]
-if(!MODE) {
-    console.error(`'BUILD_MODE' is not specified`)
-    process.exit(1);
-}
-
-process.stdout.write(`Build script mode: ${MODE}\n`)
-
 const ROOT_DIR = path.join(import.meta.dirname, '..')
 const SRC_DIR = path.join(ROOT_DIR, 'src')
 const OUT_DIR = path.join(ROOT_DIR, 'dist')
@@ -29,6 +21,12 @@ const writeOptimizedServerPackageJson = (ROOT_DIR, externalDeps) => {
     const currentDeps = currentPackageJson.dependencies
 
     const newDeps = {}
+
+    { // kysely kostyl`
+        const dotenv = Object.entries(currentDeps).find(i => i[0] === 'dotenv' && i[1])
+        if(dotenv) newDeps['dotenv'] = dotenv[1]
+    }
+
     Object.entries(currentDeps).forEach(_ => {
         if (externalDeps.has(_[0])) {
             newDeps[_[0]] = _[1]

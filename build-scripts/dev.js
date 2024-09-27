@@ -1,7 +1,8 @@
 import path from "node:path";
-import fse from "fs-extra";
 import {DevServerDaemon} from "./serve.js";
-import {downloadAltVPackages, watchClient, watchServer} from "./tools.dev.js";
+import {watchClient, watchServer} from "./tools.dev.js";
+import fse from "fs-extra";
+import dotenv from 'dotenv'
 
 const ROOT_DIR = path.join(import.meta.dirname, '..')
 const SRC_DIR = path.join(ROOT_DIR, 'src')
@@ -9,20 +10,10 @@ const BIN_DIR = path.join(import.meta.dirname, '..', 'bin')
 const RESOURCES_DIR = path.join(BIN_DIR, 'resources');
 const SERVER_CORE_RESOURCE_DIR = path.join(RESOURCES_DIR, 'core');
 
-
-fse.copyFileSync(
-    path.join(ROOT_DIR, '.altvpkgrc.json'),
-    path.join(ROOT_DIR, '.altvpkgrc.json'),
-)
-
-const spawnServer = async () => {
-
-}
+const ENV_FILE_STRING = fse.readFileSync(path.join(ROOT_DIR, '.env'), 'utf8');
+const SERVER_ENV = dotenv.parse(ENV_FILE_STRING)
 
 const serve = async () => {
-    
-    await downloadAltVPackages(BIN_DIR)
-
     const serverEE = await watchServer(ROOT_DIR, path.join(SRC_DIR, 'server'), path.join(SERVER_CORE_RESOURCE_DIR, 'server'))
     const clientEE = await watchClient(ROOT_DIR, path.join(SRC_DIR, 'client'), path.join(SERVER_CORE_RESOURCE_DIR, 'client'))
 
@@ -43,20 +34,22 @@ const serve = async () => {
     }
 
     const onInitialReady = () => {
-        console.clear()
+        // console.clear()
         console.log('✅  Watch ready')
 
-        const daemon = new DevServerDaemon()
+        const daemon = new DevServerDaemon(BIN_DIR, SERVER_ENV)
 
         serverEE.on('ok', () => {
-            daemon.restartRequest()
             console.log('Server successful built')
+            daemon.restartRequest()
         })
 
         clientEE.on('ok', () => {
-            daemon.restartRequest()
             console.log('Client successful built')
+            daemon.restartRequest()
         })
+
+        daemon.start()
     }
 
     serverEE.on('error', (err) => {
@@ -85,27 +78,4 @@ const serve = async () => {
     })
 }
 
-const index = async () => {
-    fse.mkdirSync(RESOURCES_DIR)
-    fse.mkdirSync(SERVER_CORE_RESOURCE_DIR)
-    fse.mkdirSync(SERVER_CORE_RESOURCE_DIR)
-
-    let serverToml = path.join(ROOT_DIR, 'altv', 'server.dev.toml')
-
-    fse.copySync(
-        path.join(serverToml),
-        path.join(BIN_DIR, 'server.toml'),
-    )
-
-    fse.copySync(
-        path.join(ROOT_DIR, 'altv', 'resource.toml'),
-        path.join(SERVER_CORE_RESOURCE_DIR, 'resource.toml'),
-    )
-    
-    fse.copySync(
-        path.join(ROOT_DIR, 'kysely'),
-        path.join(SERVER_CORE_RESOURCE_DIR, 'kysely'),
-    )
-}
-
-void index()
+void serve()

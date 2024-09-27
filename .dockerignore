@@ -1,8 +1,7 @@
 node_modules
 bin
 docs
-dev
-dist
 docker-data
+docker-data-dev
 .idea
 .env

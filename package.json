@@ -8,17 +8,17 @@
     "web:serve": "cd ./src/web && vite serve --host",
     "dev:db:codegen": "npx tsx kysely/index/codegen.ts",
     "dev:migrate:create": "npx tsx kysely/index/make-migration.script.ts",
-    "dev:migrate:up": "npx tsx kysely/index/migrate.ts all && npm run db:codegen",
-    "dev:migrate:next": "npx tsx kysely/index/migrate.ts up && npm run db:codegen",
-    "dev:migrate:down": "npx tsx kysely/index/migrate.ts down && npm run db:codegen",
-    "dev:up": "node scripts/cli.mjs up",
-    "dev:down": "node scripts/cli.mjs down",
-    "serve": "node build-scripts/index.js",
+    "dev:migrate:up": "npx tsx kysely/index/migrate.ts all && npm run dev:db:codegen",
+    "dev:migrate:next": "npx tsx kysely/index/migrate.ts up && npm run dev:db:codegen",
+    "dev:migrate:down": "npx tsx kysely/index/migrate.ts down && npm run dev:db:codegen",
 
-    "dev:docker": "docker-compose -f ./docker-compose.dev.yml up",
+    "dev:install": "node build-scripts/prep-dev-bin.js",
+    "dev:docker": "docker-compose -f ./docker-compose.dev.yml up -d",
+    "dev": "node build-scripts/dev.js",
+
     "monitoring": "docker-compose -f ./docker-compose.monitoring.yml up -d",
 
-    "build-docker": "docker-compose -f docker-compose.yml up --build",
+    "build-docker": "docker-compose -f docker-compose.yml up --build -d",
     "build": "node build-scripts/prod.js",
     "migrate": "npx tsx kysely/index/migrate.ts all",
     "test": "node test.js"

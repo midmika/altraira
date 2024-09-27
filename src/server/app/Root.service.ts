@@ -28,6 +28,6 @@ export class RootService {
 
         this.logger.info();
 
-        if (process.env.ALTAIRA_MODE === 'dev') this.devScript.start();
+        if (process.env.NODE_ENV === 'development') this.devScript.start();
     }
 }

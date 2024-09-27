@@ -16,27 +16,6 @@ services:
     ports:
       - "${POSTGRES_PORT}:5432"
 
-  altaira:
-    container_name: altaira-dev
-    build:
-      context: .
-      dockerfile: ./dev.Dockerfile
-      args:
-        BUILD_MODE: production
-    environment:
-      NODE_ENV: production
-    ports:
-      - '7788:7788'
-      - '7788:7788/udp'
-    env_file:
-      - .env
-    restart: unless-stopped
-    volumes:
-      - .:/app
-    depends_on:
-      - postgres
-    command: tail -f /dev/null
-
 volumes:
   postgres_data:
     driver: local

@@ -1,8 +1,9 @@
 import path from "node:path";
+import dotenv from "dotenv"
 
-// if(process.env.ALTAIRA_MODE === 'dev') {
-//     dotenv.config({ path: path.join(import.meta.dirname, '..', '..', ".env") });
-// }
+if(process.env.NODE_ENV !== 'production') {
+   dotenv.config({ path: path.join(import.meta.dirname, '..', '..', ".env") });
+}
 
 export const config = {
     host: process.env.POSTGRES_HOST,

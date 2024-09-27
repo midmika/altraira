@@ -1,9 +1,6 @@
 node_modules
 bin
-dev
-dist
 docker-data
 docker-data-dev
-!docker-data-dev/.gitkeep
 .idea
 .env

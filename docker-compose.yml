@@ -11,6 +11,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASS}
       POSTGRES_DB: postgres
       POSTGRES_HOST_AUTH_METHOD: md5
+    volumes:
+      - ./docker-data/pg_data:/var/lib/postgresql/data
     ports:
       - "${POSTGRES_PORT}:5432"
 

@@ -2,7 +2,6 @@ import child_process from "node:child_process";
 import EventEmitter from "events";
 import ESBuild from "esbuild";
 import {getClientConfig, getServerConfig} from "./build.config.js";
-import exp from "node:constants";
 
 export const downloadAltVPackages = async (BIN_DIR) => new Promise((resolve) => {
     const cp = child_process.exec('npx altv-pkg release', { cwd: BIN_DIR })
@@ -37,7 +36,7 @@ const createServeStatusPlugin = () => {
 }
 
 export const watchServer = async (ROOT_DIR, SRC_DIR, CORE_RESOURCE_DIR) => {
-    const config = getServerConfig(ROOT_DIR, SRC_DIR, CORE_RESOURCE_DIR, 'prod');
+    const config = getServerConfig(ROOT_DIR, SRC_DIR, CORE_RESOURCE_DIR, 'development');
     const { ee, plugin } = createServeStatusPlugin()
     config.plugins.push(plugin)
     const ctx = await ESBuild.context({ ...config, logLevel: 'silent' });
@@ -46,7 +45,7 @@ export const watchServer = async (ROOT_DIR, SRC_DIR, CORE_RESOURCE_DIR) => {
 }
 
 export const watchClient = async (ROOT_DIR, SRC_DIR, CORE_RESOURCE_DIR) => {
-    const config = getClientConfig(ROOT_DIR, SRC_DIR, CORE_RESOURCE_DIR, 'prod');
+    const config = getClientConfig(ROOT_DIR, SRC_DIR, CORE_RESOURCE_DIR, 'development');
     const { ee, plugin } = createServeStatusPlugin()
     config.plugins.push(plugin)
     const ctx = await ESBuild.context({ ...config, logLevel: 'silent' });

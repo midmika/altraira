@@ -5,7 +5,7 @@ WORKDIR '/app'
 COPY . .
 
 RUN pnpm install --frozen-lockfile
-RUN pnpm build production
+RUN pnpm build
 
 FROM altmp/altv-server:release
 RUN npm install -g pnpm tsx

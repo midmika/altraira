@@ -1,5 +1,8 @@
 import http from "node:http";
 import url from "node:url";
+import {spawn} from "node:child_process";
+import path from "node:path";
+import EventEmitter from "events";
 
 export class DevServerDaemon {
 
@@ -7,31 +10,36 @@ export class DevServerDaemon {
     is_in_action = false
     is_wanna = false
 
-    last_reconnect_ip_list = []
+    #can_restart = false
 
-    constructor() {
+    #last_reconnect_ip_list = []
+
+    #BIN_DIR
+    #SERVER_ENV
+
+    #ee = new EventEmitter()
+
+    constructor(BIN_DIR, SERVER_ENV) {
         http.createServer((req, res) => {
             const parsedUrl = url.parse(req.url, true);
             const pathname = parsedUrl.pathname;
-            if(pathname === '/SERVER_READY') this.#onServerUp()
+            if(pathname === '/SERVER_READY') this.#ee.emit('up')
             res.end()
         }).listen(7780);
+
+        this.#BIN_DIR = BIN_DIR
+        this.#SERVER_ENV = SERVER_ENV
     }
 
-    #onServerUp() {
-        console.log('✅  Server started')
-        this.is_up = true
-        this.is_in_action = false
-    }
 
     async start() {
-        this.is_in_action = true;
-        //todo: start server
-        this.is_in_action = false
+        this.#can_restart = false
+        await this.#spawn()
+        this.#can_restart = true
     }
 
     restartRequest() {
-        if(!this.is_up && this.is_in_action) {
+        if(!this.#can_restart) {
             this.is_wanna = true
             return;
         }
@@ -39,20 +47,67 @@ export class DevServerDaemon {
         void this.#restart()
     }
 
+    async #spawn() {
+        return new Promise((resolve, reject) => {
+
+            const process = spawn(
+                path.join(this.#BIN_DIR, 'altv-server.exe'),
+                {
+                    env: {
+                        NODE_ENV: 'development', ...this.#SERVER_ENV,
+                        DEV_RECONNECT_IP_LIST: this.#last_reconnect_ip_list.join(', ').toString()
+                    },
+                    cwd: this.#BIN_DIR, stdio: ['inherit', 'inherit', 'inherit']
+                },
+            );
+
+            process.once('close', (code) => {
+                this.#ee.emit('down', true)
+                if(code !== 0) reject(code)
+            });
+
+            process.on('error', (error) => {
+                console.error('alt:V Server Error');
+                console.error(error);
+            });
+
+            this.#ee.once('up', () => {
+                console.log('✅  Server started')
+                resolve()
+            })
+        })
+    }
+
+    async #waitStop() {
+        return new Promise((r) => {
+            this.#ee.once('down', r)
+        })
+    }
+
     async #restart() {
         try {
-            this.is_in_action = true
-            this.is_up = false
+            this.#can_restart = false
             console.log('Sending #restart command...')
-            const res = await fetch('http://127.0.0.1:7781/restart', { method: 'POST' })
+            const [res] = await Promise.all([
+                fetch('http://127.0.0.1:7781/RESTART', { method: 'POST' }),
+                this.#waitStop()
+            ])
             const reconnect_ips_list = await res.json()
-            this.last_reconnect_ip_list = reconnect_ips_list
+
+            this.#last_reconnect_ip_list = reconnect_ips_list
             if(reconnect_ips_list) {
                 console.log('Received reconnect ips list: ', reconnect_ips_list.join(', '))
             }
+            await this.#spawn()
+            this.#can_restart = true
         } catch (error) {
             console.log("❌  Fail to #restart server.", error)
         } finally {
+            if(this.is_wanna) {
+                this.is_wanna = false
+                this.#can_restart = false
+                void this.#restart()
+            }
         }
     }
 
