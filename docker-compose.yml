@@ -25,6 +25,7 @@ services:
         BUILD_MODE: production
     environment:
       NODE_ENV: production
+      POSTGRES_HOST: postgres
     ports:
       - '7788:7788'
       - '7788:7788/udp'
