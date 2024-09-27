@@ -6,7 +6,6 @@ import {migrate} from "@/_magic/migrate";
 ;
 (async () => {
     try {
-        console.log(process.env.POSTGRES_HOST)
         if(process.env.NODE_ENV === 'production') await migrate();
         await init();
     } catch (e) {
